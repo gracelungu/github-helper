@@ -2,10 +2,14 @@
   "schema_version": "v1",
   "name_for_human": "GitHub Helper",
   "name_for_model": "github_helper",
-  "description_for_human": "Plugin for managing GitHub projects, PR reviews, commenting, making commits, and Pull requests",
-  "description_for_model": "Plugin for managing GitHub projects, PR reviews, commenting, making commits, and Pull requests",
+  "description_for_human": "Plugin for managing GitHub projects, PR reviews, commenting, making commits, and creating new PRs.",
+  "description_for_model": "Plugin for managing GitHub projects, reviewing pull requests, commenting, making commits, and creating new pull requests.",
   "auth": {
-    "type": "none"
+    "type": "oauth",
+    "client_url": "https://github.com/login/oauth/authorize",
+    "scope": "repo,user",
+    "authorization_url": "https://github.com/login/oauth/access_token",
+    "authorization_content_type": "application/json"
   },
   "api": {
     "type": "openapi",
