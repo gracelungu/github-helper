@@ -1,0 +1,444 @@
+// api/github/list_repos.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const listRepos = async (req: NextApiRequest, res: NextApiResponse) => {
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    const response = await axios.get('https://api.github.com/user/repos', {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    const repos = response.data.map((repo: any) => ({
+      id: repo.id,
+      name: repo.name,
+      full_name: repo.full_name,
+      description: repo.description,
+      url: repo.html_url,
+    }));
+
+    return res.status(200).json(repos);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error fetching repositories' });
+  }
+};
+
+export default listRepos;
+
+// api/github/browse_repo.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const browseRepo = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, ref, path } = req.query;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo) {
+    return res.status(400).json({ error: 'Missing owner or repo' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents${path ? `/${path}` : ''}${ref ? `?ref=${ref}` : ''}`;
+    const response = await axios.get(url, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    const items = response.data.map((item: any) => ({
+      name: item.name,
+      path: item.path,
+      type: item.type,
+      url: item.html_url,
+    }));
+
+    return res.status(200).json(items);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error browsing repository' });
+  }
+};
+
+export default browseRepo;
+// api/github/create_branch.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const createBranch = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, newBranchName, baseRef } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !newBranchName || !baseRef) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    // Get the base reference commit SHA
+    const baseRefResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/git/ref/heads/${baseRef}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+    const baseRefSha = baseRefResponse.data.object.sha;
+
+    // Create the new branch
+    const newBranchResponse = await axios.post(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+      ref: `refs/heads/${newBranchName}`,
+      sha: baseRefSha,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(201).json(newBranchResponse.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error creating branch' });
+  }
+};
+
+export default createBranch;
+// api/github/update_branch.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const updateBranch = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, branch, newBase } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !branch || !newBase) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    // Update the branch
+    const response = await axios.patch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+      sha: newBase,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error updating branch' });
+  }
+};
+
+export default updateBranch;
+// api/github/create_commit.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const createCommit = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, message, tree, parents } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !message || !tree || !parents) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    // Create the commit
+    const response = await axios.post(`https://api.github.com/repos/${owner}/${repo}/git/commits`, {
+      message,
+      tree,
+      parents,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(201).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error creating commit' });
+  }
+};
+
+export default createCommit;
+
+// api/github/update_commit.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const updateCommit = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, branch, commitSHA, message, tree, parents } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !branch || !commitSHA || !message || !tree || !parents) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    // Create a new commit with the updated content
+    const newCommitResponse = await axios.post(`https://api.github.com/repos/${owner}/${repo}/git/commits`, {
+      message,
+      tree,
+      parents,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    const newCommitSHA = newCommitResponse.data.sha;
+
+    // Update the branch reference to point to the new commit
+    const updateBranchResponse = await axios.patch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+      sha: newCommitSHA,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(200).json(updateBranchResponse.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error updating commit' });
+  }
+};
+
+export default updateCommit;
+
+// api/github/add_update_file.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const addUpdateFile = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, path, content, message, branch } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !path || !content || !message || !branch) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    // Check if the file exists
+    let fileSHA = null;
+    try {
+      const getFileResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        headers: {
+          Accept: 'application/vnd.github+json',
+          Authorization: `token ${token}`,
+        },
+        params: { ref: branch },
+      });
+
+      fileSHA = getFileResponse.data.sha;
+    } catch (error) {
+      if (error.response.status !== 404) {
+        return res.status(500).json({ error: 'Error checking file existence' });
+      }
+    }
+
+    // Create or update the file
+    const response = await axios.put(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      message,
+      content: Buffer.from(content).toString('base64'),
+      sha: fileSHA,
+      branch,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error adding or updating file' });
+  }
+};
+
+export default addUpdateFile;
+
+// api/github/delete_file.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const deleteFile = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, path, message, branch } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !path || !message || !branch) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    // Get the file SHA
+    const getFileResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+      params: { ref: branch },
+    });
+
+    const fileSHA = getFileResponse.data.sha;
+
+    // Delete the file
+    const response = await axios.delete(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+      data: {
+        message,
+        sha: fileSHA,
+        branch,
+      },
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error deleting file' });
+  }
+};
+
+export default deleteFile;
+
+// api/github/create_pull_request.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const createPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, title, body, head, base } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !title || !head || !base) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    const response = await axios.post(`https://api.github.com/repos/${owner}/${repo}/pulls`, {
+      title,
+      body,
+      head,
+      base,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error creating pull request' });
+  }
+};
+
+export default createPullRequest;
+// api/github/get_pull_request.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const getPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, pull_number } = req.query;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !pull_number) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    const response = await axios.get(`https://api.github.com/repos/${owner}/${repo}/pulls/${pull_number}`, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error fetching pull request' });
+  }
+};
+
+export default getPullRequest;
+// api/github/review_pull_request.ts
+import type { NextApiRequest, NextApiResponse } from 'next';
+import axios from 'axios';
+
+const reviewPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
+  const { owner, repo, pull_number, body, event } = req.body;
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !pull_number || !body || !event) {
+    return res.status(400).json({ error: 'Missing required parameters' });
+  }
+
+  if (!token) {
+    return res.status(400).json({ error: 'Missing access token' });
+  }
+
+  try {
+    const response = await axios.post(`https://api.github.com/repos/${owner}/${repo}/pulls/${pull_number}/reviews`, {
+      body,
+      event,
+    }, {
+      headers: {
+        Accept: 'application/vnd.github+json',
+        Authorization: `token ${token}`,
+      },
+    });
+
+    return res.status(200).json(response.data);
+  } catch (error) {
+    return res.status(500).json({ error: 'Error reviewing pull request' });
+  }
+};
+
+export default reviewPullRequest;

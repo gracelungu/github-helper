@@ -3,9 +3,9 @@ info:
   title: GitHub Helper API
   version: 1.0.0
 servers:
-  - url: https://github-helper-jet.vercel.app/api/app
+  - url: https://github-helper-jet.vercel.app/api/github
 paths:
-  /user/repos:
+  /list_repos:
     get:
       summary: List repositories for the authenticated user
       operationId: listUserRepos
@@ -18,11 +18,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Repository'
-
-  /repos/{owner}/{repo}/issues:
-    post:
-      summary: Create a new issue in the specified repository
-      operationId: createIssue
+  /browse_repo/{owner}/{repo}/{path}:
+    get:
+      summary: Browse a repository's folders and files
+      operationId: browseRepo
       parameters:
         - name: owner
           in: path
@@ -34,130 +33,54 @@ paths:
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewIssue'
-      responses:
-        '201':
-          description: Created issue
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Issue'
-
-  /repos/{owner}/{repo}/pulls:
-    post:
-      summary: Create a new pull request in the specified repository
-      operationId: createPullRequest
-      parameters:
-        - name: owner
+        - name: path
           in: path
           required: true
           schema:
             type: string
-        - name: repo
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewPullRequest'
-      responses:
-        '201':
-          description: Created pull request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NewPullRequest'
-  /repos/{owner}/{repo}/pulls/{pull_number}/reviews:
-    post:
-      summary: Create a review for the specified pull request
-      operationId: createPullRequestReview
-      parameters:
-        - name: owner
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: repo
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: pull_number
-          in: path
-          required: true
-          schema:
-            type: integer
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/NewPullRequestReview'
       responses:
         '200':
-          description: Created review
+          description: A list of folders and files in the specified path
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PullRequestReview'
-  /repos/{owner}/{repo}/issues/{issue_number}/comments:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FileOrFolder'
+  /create_branch:
     post:
-      summary: Create a comment on the specified issue or pull request
-      operationId: createComment
-      parameters:
-        - name: owner
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: repo
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: issue_number
-          in: path
-          required: true
-          schema:
-            type: integer
+      summary: Create a new branch
+      operationId: createBranch
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/NewComment'
+              $ref: '#/components/schemas/NewBranch'
       responses:
         '201':
-          description: Created comment
+          description: Created branch
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Comment'
-
-  /repos/{owner}/{repo}/commits:
+                $ref: '#/components/schemas/Branch'
+  /delete_branch:
+    delete:
+      summary: Delete a branch
+      operationId: deleteBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BranchToDelete'
+      responses:
+        '204':
+          description: Branch deleted
+  /create_commit:
     post:
-      summary: Create a new commit in the specified repository
+      summary: Create a new commit
       operationId: createCommit
-      parameters:
-        - name: owner
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: repo
-          in: path
-          required: true
-          schema:
-            type: string
       requestBody:
         required: true
         content:
@@ -171,6 +94,97 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Commit'
+  /update_file:
+    put:
+      summary: Update a file
+      operationId: updateFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFile'
+      responses:
+        '200':
+          description: Updated file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/File'
+  /delete_file:
+    delete:
+      summary: Delete a file
+      operationId: deleteFile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteFile'
+      responses:
+        '204':
+          description: File deleted
+  /create_pull_request:
+    post:
+      summary: Create a new pull request
+      operationId: createPullRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewPullRequest'
+      responses:
+        '201':
+          description: Created pull request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PullRequest'
+  /get_pull_request:
+    get:
+      summary: Get a pull request
+      operationId: getPullRequest
+      parameters:
+        - name: owner
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: repo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: pull_number
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: A pull request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PullRequest'
+  /review_pull_request:
+    post:
+      summary: Review a pull request with comments
+      operationId: reviewPullRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Review'
+      responses:
+        '201':
+          description: Created review
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Review'
 
 components:
   schemas:
@@ -183,95 +197,52 @@ components:
           type: string
         full_name:
           type: string
-        description:
-          type: string
-
-    NewIssue:
+        private:
+          type: boolean
+    FileOrFolder:
       type: object
       properties:
-        title:
+        type:
           type: string
-        body:
+          enum: [file, dir]
+        name:
           type: string
-        assignees:
-          type: array
-          items:
-            type: string
-        labels:
-          type: array
-          items:
-            type: string
-
-    Issue:
+        path:
+          type: string
+    NewBranch:
       type: object
       properties:
-        id:
-          type: integer
-        number:
-          type: integer
-        title:
+        owner:
           type: string
-        body:
+        repo:
           type: string
-        state:
+        branch_name:
           type: string
-        user:
-          $ref: '#/components/schemas/User'
-        assignees:
-          type: array
-          items:
-            $ref: '#/components/schemas/User'
-        labels:
-          type: array
-          items:
-            $ref: '#/components/schemas/Label'
-        created_at:
+        base_ref:
           type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-
-    NewPullRequestReview:
+    BranchToDelete:
       type: object
       properties:
-        body:
+        owner:
           type: string
-        event:
+        repo:
           type: string
-          enum: [APPROVE, REQUEST_CHANGES, COMMENT]
-
-    PullRequestReview:
+        branch_name:
+          type: string
+    Branch:
       type: object
       properties:
-        id:
-          type: integer
-        user:
-          $ref: '#/components/schemas/User'
-        body:
+        name:
           type: string
-        state:
-          type: string
-
-    NewComment:
-      type: object
-      properties:
-        body:
-          type: string
-
-    Comment:
-      type: object
-      properties:
-        id:
-          type: integer
-        user:
-          $ref: '#/components/schemas/User'
-        body:
-          type: string
-
+        commit:
+          $ref: '#/components/schemas/Commit'
     NewCommit:
       type: object
       properties:
+        owner:
+          type: string
+        repo:
+          type: string
         message:
           type: string
         tree:
@@ -280,49 +251,116 @@ components:
           type: array
           items:
             type: string
-
     Commit:
       type: object
       properties:
         sha:
           type: string
+        url:
+          type: string
         message:
           type: string
-
-    User:
+    UpdateFile:
       type: object
       properties:
-        login:
+        owner:
           type: string
-        id:
+        repo:
+          type: string
+        path:
+          type: string
+        content:
+          type: string
+    DeleteFile:
+      type: object
+      properties:
+        owner:
+          type: string
+        repo:
+          type: string
+        path:
+          type: string
+    File:
+      type: object
+      properties:
+        sha:
+          type: string
+        filename:
+          type: string
+        status:
+          type: string
+        additions:
           type: integer
-
+        deletions:
+          type: integer
+        changes:
+          type: integer
+        blob_url:
+          type: string
+        raw_url:
+          type: string
+        content_url:
+          type: string
+        patch:
+          type: string
     NewPullRequest:
       type: object
       properties:
+        owner:
+          type: string
+        repo:
+          type: string
         title:
           type: string
         head:
           type: string
         base:
           type: string
-        body:
-          type: string
-        draft:
-          type: boolean
-        maintainer_can_modify:
-          type: boolean
-
-    Label:
+    PullRequest:
       type: object
       properties:
         id:
           type: integer
-        name:
+        url:
           type: string
-        description:
+        number:
+          type: integer
+        state:
           type: string
-        color:
+        title:
           type: string
-
-
+        body:
+          type: string
+        head:
+          $ref: '#/components/schemas/Branch'
+        base:
+          $ref: '#/components/schemas/Branch'
+    Review:
+      type: object
+      properties:
+        owner:
+          type: string
+        repo:
+          type: string
+        pull_number:
+          type: integer
+        commit_id:
+          type: string
+        body:
+          type: string
+        event:
+          type: string
+          enum: [COMMENT, APPROVE, REQUEST_CHANGES, PENDING]
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewComment'
+    ReviewComment:
+      type: object
+      properties:
+        path:
+          type: string
+        position:
+          type: integer
+        body:
+          type: string
