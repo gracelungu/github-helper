@@ -26,7 +26,7 @@ const listRepos = async (req: NextApiRequest, res: NextApiResponse) => {
     }));
 
     return res.status(200).json(repos);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error fetching repositories' });
   }
 };
@@ -66,7 +66,7 @@ const browseRepo = async (req: NextApiRequest, res: NextApiResponse) => {
     }));
 
     return res.status(200).json(items);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error browsing repository' });
   }
 };
@@ -110,7 +110,7 @@ const createBranch = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(201).json(newBranchResponse.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error creating branch' });
   }
 };
@@ -144,7 +144,7 @@ const updateBranch = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error updating branch' });
   }
 };
@@ -180,7 +180,7 @@ const createCommit = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(201).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error creating commit' });
   }
 };
@@ -229,7 +229,7 @@ const updateCommit = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(updateBranchResponse.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error updating commit' });
   }
 };
@@ -265,7 +265,7 @@ const addUpdateFile = async (req: NextApiRequest, res: NextApiResponse) => {
       });
 
       fileSHA = getFileResponse.data.sha;
-    } catch (error) {
+    } catch (error:any) {
       if (error.response.status !== 404) {
         return res.status(500).json({ error: 'Error checking file existence' });
       }
@@ -285,7 +285,7 @@ const addUpdateFile = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error adding or updating file' });
   }
 };
@@ -334,7 +334,7 @@ const deleteFile = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error deleting file' });
   }
 };
@@ -371,7 +371,7 @@ const createPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error creating pull request' });
   }
 };
@@ -402,7 +402,7 @@ const getPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error fetching pull request' });
   }
 };
@@ -436,7 +436,7 @@ const reviewPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error reviewing pull request' });
   }
 };

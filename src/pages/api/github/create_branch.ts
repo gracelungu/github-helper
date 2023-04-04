@@ -36,7 +36,7 @@ const createBranch = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(201).json(newBranchResponse.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error creating branch' });
   }
 };

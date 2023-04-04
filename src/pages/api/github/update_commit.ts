@@ -40,7 +40,7 @@ const updateCommit = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(updateBranchResponse.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error updating commit' });
   }
 };

@@ -26,7 +26,7 @@ const listRepos = async (req: NextApiRequest, res: NextApiResponse) => {
     }));
 
     return res.status(200).json(repos);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error fetching repositories' });
   }
 };

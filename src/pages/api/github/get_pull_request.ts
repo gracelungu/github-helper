@@ -23,7 +23,7 @@ const getPullRequest = async (req: NextApiRequest, res: NextApiResponse) => {
     });
 
     return res.status(200).json(response.data);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error fetching pull request' });
   }
 };

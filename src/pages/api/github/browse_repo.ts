@@ -31,7 +31,7 @@ const browseRepo = async (req: NextApiRequest, res: NextApiResponse) => {
     }));
 
     return res.status(200).json(items);
-  } catch (error) {
+  } catch (error:any) {
     return res.status(500).json({ error: 'Error browsing repository' });
   }
 };
