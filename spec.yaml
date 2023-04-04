@@ -3,7 +3,7 @@ info:
   title: GitHub Helper API
   version: 1.0.0
 servers:
-  - url: https://api.github.com
+  - url: https://github-helper-jet.vercel.app/api/app
 paths:
   /user/repos:
     get:
