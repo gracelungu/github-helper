@@ -1,25 +1,36 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import https from 'https';
+import axios from 'axios';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const options = {
-    hostname: 'api.github.com',
-    path: req.url,
-    // headers: {
-    //   'User-Agent': 'GitHub Helper',
-    //   Authorization: `token ${process.env.GITHUB_TOKEN}`,
-    // },
-  };
+const GITHUB_API_BASE_URL = 'https://api.github.com';
 
-  const proxyReq = https.request(options, (proxyRes) => {
-    res.writeHead(proxyRes.statusCode, proxyRes.headers);
-    proxyRes.pipe(res);
-  });
+async function handler(req: NextApiRequest, res: NextApiResponse) {
+  try {
+    const { method, query, body, headers } = req;
 
-  proxyReq.on('error', (err) => {
-    console.error(err);
-    res.status(500).end();
-  });
+    if (!headers.authorization) {
+      return res.status(401).json({ message: 'Authorization header not provided' });
+    }
 
-  req.pipe(proxyReq);
+    const apiUrl = `${GITHUB_API_BASE_URL}${query.pathname}`;
+
+    const response = await axios({
+      method: method as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH',
+      url: apiUrl,
+      headers: {
+        ...headers,
+        'User-Agent': 'GitHub Proxy', // Replace with your own User-Agent
+      },
+      data: body,
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error:any) {
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    } else {
+      return res.status(500).json({ message: 'Internal server error' });
+    }
+  }
 }
+
+export default handler;
