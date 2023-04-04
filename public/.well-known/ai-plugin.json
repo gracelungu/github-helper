@@ -5,12 +5,7 @@
   "description_for_human": "Plugin for managing GitHub projects, PR reviews, commenting, making commits, and Pull requests",
   "description_for_model": "Plugin for managing GitHub projects, PR reviews, commenting, making commits, and Pull requests",
   "auth": {
-    "type": "oauth",
-    "authorization_url": "https://github.com/login/oauth/authorize",
-    "token_url": "https://github.com/login/oauth/access_token",
-    "client_url": "https://github-helper-jet.vercel.app",
-    "authorization_content_type": "application/json",
-    "scope": "repo user"
+    "type": "none"
   },
   "api": {
     "type": "openapi",
