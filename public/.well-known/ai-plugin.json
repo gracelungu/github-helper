@@ -1,22 +1,24 @@
 {
-    "schema_version": "v1",
-    "name_for_human": "GitHub Helper",
-    "name_for_model": "github_helper",
-    "description_for_human": "Plugin for managing GitHub projects, reviewing pull requests, commenting, making commits, and creating new pull requests.",
-    "description_for_model": "Plugin for managing GitHub projects, reviewing pull requests, commenting, making commits, and creating new pull requests.",
-    "auth": {
-      "type": "oauth2",
-      "authorization_url": "https://github.com/login/oauth/authorize",
-      "token_url": "https://github.com/login/oauth/access_token",
-      "scope": ["repo", "user"]
-    },
-    "api": {
-      "type": "openapi",
-      "url": "https://github-helper-jet.vercel.app/api/spec",
-      "is_user_authenticated": true
-    },
-    "logo_url": "https://github-helper-jet.vercel.app/next.svg",
-    "contact_email": "support@github-helper-jet.vercel.app",
-    "legal_info_url": "https://github-helper-jet.vercel.app/legal"
+  "schema_version": "v1",
+  "name_for_human": "GitHub Helper",
+  "name_for_model": "github_helper",
+  "description_for_human": "Plugin for managing GitHub projects, reviewing pull requests, commenting, making commits, and creating new pull requests.",
+  "description_for_model": "Plugin for managing GitHub projects, reviewing pull requests, commenting, making commits, and creating new pull requests.",
+  "auth": {
+    "type": "oauth",
+    "authorization_url": "https://github.com/login/oauth/authorize",
+    "token_url": "https://github.com/login/oauth/access_token",
+    "scope": [
+      "repo",
+      "user"
+    ]
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://github-helper-jet.vercel.app/api/spec",
+    "is_user_authenticated": true
+  },
+  "logo_url": "https://github-helper-jet.vercel.app/next.svg",
+  "contact_email": "support@github-helper-jet.vercel.app",
+  "legal_info_url": "https://github-helper-jet.vercel.app/legal"
 }
-  
